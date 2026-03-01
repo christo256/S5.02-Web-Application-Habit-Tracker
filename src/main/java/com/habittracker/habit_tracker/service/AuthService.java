@@ -7,6 +7,7 @@ import com.habittracker.habit_tracker.exceptions.*;
 import com.habittracker.habit_tracker.model.User;
 import com.habittracker.habit_tracker.model.enums.Role;
 import com.habittracker.habit_tracker.repository.UserRepository;
+import com.habittracker.habit_tracker.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -20,7 +21,7 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    // private final JwtTokenProvider jwtTokenProvider;
+    private final JwtTokenProvider jwtTokenProvider;
 
     public void register(RegisterRequest request) {
         if (userRepository.existsByUsername(request.getUsername())) {
@@ -47,10 +48,10 @@ public class AuthService {
         }
 
 
-        String tempToken = "TEMPORARY_TOKEN_FASE_6";
+        String token = jwtTokenProvider.generateToken(user.getUsername());
 
         return new JwtResponse(
-                tempToken,
+                token,
                 user.getId(),
                 user.getUsername(),
                 user.getRole().name()
