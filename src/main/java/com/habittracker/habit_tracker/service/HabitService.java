@@ -10,6 +10,7 @@ import com.habittracker.habit_tracker.model.User;
 import com.habittracker.habit_tracker.repository.HabitRepository;
 import com.habittracker.habit_tracker.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +21,7 @@ import java.util.stream.Collectors;
 /**
  * Service que maneja toda la lógica de hábitos.
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class HabitService {
@@ -49,11 +51,13 @@ public class HabitService {
 
     @Transactional
     public HabitResponse createHabit(HabitRequest request, String username) {
+        log.info("Creating habit '{}' for user '{}'", request.getName(), username);
         User user = findUserByUsername(username);
 
         Habit habit = habitMapper.toEntity(request, user);
         Habit savedHabit = habitRepository.save(habit);
 
+        log.info("Habit created successfully with ID: {}", savedHabit.getId());
         return habitMapper.toResponse(savedHabit);
     }
 
@@ -81,6 +85,7 @@ public class HabitService {
 
     @Transactional
     public HabitResponse completeHabit(Long habitId, String username) {
+        log.info("User '{}' completing habit ID: {}", username, habitId);
         Habit habit = findHabitById(habitId);
         validateOwnership(habit, username);
 
@@ -88,6 +93,8 @@ public class HabitService {
 
         // Validar que no se complete dos veces el mismo día
         if (habit.getLastCompleted() != null && habit.getLastCompleted().equals(today)) {
+
+            log.warn("User '{}' attempted to complete habit '{}' twice in the same day", username, habitId);
             throw new BadRequestException("Habit already completed today");
         }
 
@@ -96,6 +103,8 @@ public class HabitService {
         habit.setLastCompleted(today);
 
         Habit savedHabit = habitRepository.save(habit);
+        log.info("Habit {} completed. Current streak: {}, Longest streak: {}",
+                habitId, habit.getCurrentStreak(), habit.getLongestStreak());
         return habitMapper.toResponse(savedHabit);
     }
 
