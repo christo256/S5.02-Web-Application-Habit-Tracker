@@ -3,6 +3,7 @@ package com.habittracker.habit_tracker.service;
 import com.habittracker.habit_tracker.dto.mapper.HabitMapper;
 import com.habittracker.habit_tracker.dto.request.HabitRequest;
 import com.habittracker.habit_tracker.dto.response.HabitResponse;
+import com.habittracker.habit_tracker.dto.response.HabitStatsResponse;
 import com.habittracker.habit_tracker.exceptions.*;
 import com.habittracker.habit_tracker.model.Habit;
 import com.habittracker.habit_tracker.model.User;
@@ -139,5 +140,47 @@ public class HabitService {
         if (habit.getCurrentStreak() > habit.getLongestStreak()) {
             habit.setLongestStreak(habit.getCurrentStreak());
         }
+    }
+
+    public HabitStatsResponse getUserStats(String username) {
+
+        List<Habit> habits = habitRepository.findByUserUsername(username);
+
+        long totalHabits = habits.size();
+
+        LocalDate today = LocalDate.now();
+
+        long completedToday = habits.stream()
+                .filter(h -> today.equals(h.getLastCompleted()))
+                .count();
+
+        int totalCurrentStreakSum = habits.stream()
+                .mapToInt(Habit::getCurrentStreak)
+                .sum();
+
+        int bestStreak = habits.stream()
+                .mapToInt(Habit::getLongestStreak)
+                .max()
+                .orElse(0);
+
+        double completionRateToday = 0.0;
+
+        if (totalHabits > 0) {
+            completionRateToday = (completedToday * 100.0) / totalHabits;
+            completionRateToday = Math.round(completionRateToday * 100.0) / 100.0;
+        }
+
+        long habitsNeedingAttention = habits.stream()
+                .filter(h -> !today.equals(h.getLastCompleted()))
+                .count();
+
+        return new HabitStatsResponse(
+                totalHabits,
+                completedToday,
+                totalCurrentStreakSum,
+                bestStreak,
+                completionRateToday,
+                (int) habitsNeedingAttention
+        );
     }
 }
