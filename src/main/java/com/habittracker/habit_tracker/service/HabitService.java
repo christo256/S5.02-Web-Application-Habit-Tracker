@@ -28,7 +28,7 @@ public class HabitService {
     private final UserRepository userRepository;
     private final HabitMapper habitMapper;
 
-
+    @Transactional(readOnly = true)
     public List<HabitResponse> getAllUserHabits(String username) {
         User user = findUserByUsername(username);
 
@@ -38,7 +38,7 @@ public class HabitService {
                 .collect(Collectors.toList());
     }
 
-
+    @Transactional(readOnly = true)
     public HabitResponse getHabitById(Long habitId, String username) {
         Habit habit = findHabitById(habitId);
         validateOwnership(habit, username);
@@ -142,6 +142,7 @@ public class HabitService {
         }
     }
 
+    @Transactional(readOnly = true)
     public HabitStatsResponse getUserStats(String username) {
 
         List<Habit> habits = habitRepository.findByUserUsername(username);
