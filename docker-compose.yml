@@ -1,16 +1,50 @@
 version: '3.8'
 
 services:
+  # MySQL Database
   mysql:
     image: mysql:8.0
     container_name: habit_tracker_mysql
     environment:
       MYSQL_ROOT_PASSWORD: rootpassword
       MYSQL_DATABASE: habit_tracker
+      MYSQL_USER: habituser
+      MYSQL_PASSWORD: habitpass
     ports:
       - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
+    networks:
+      - habit-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  # Spring Boot Backend
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: habit_tracker_backend
+    environment:
+      DB_HOST: mysql
+      DB_USER: root
+      DB_PASSWORD: rootpassword
+      JWT_SECRET: mySecretKeyForJWT123456789ThisIsAVeryLongSecretKey
+      JWT_EXPIRATION: 86400000
+    ports:
+      - "8080:8080"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - habit-network
+    restart: on-failure
 
 volumes:
   mysql_data:
+
+networks:
+  habit-network:
+    driver: bridge
