@@ -6,27 +6,31 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "Standard error response returned when a request fails")
+@Schema(description = "Standard error response")
 public class ErrorResponse {
 
-    @Schema(description = "Timestamp when the error occurred")
+    @Schema(example = "2026-03-02T02:30:00")
     private LocalDateTime timestamp;
 
-    @Schema(description = "HTTP status code")
+    @Schema(example = "400")
     private int status;
 
-    @Schema(description = "Error type description")
+    @Schema(example = "Bad Request")
     private String error;
 
-    @Schema(description = "Detailed error message")
+    @Schema(example = "Validation failed")
     private String message;
 
-    @Schema(description = "Request path that caused the error")
+    @Schema(example = "/api/habits")
     private String path;
+
+    @Schema(description = "Field validation errors (if applicable)")
+    private Map<String, String> validationErrors;
 
     public ErrorResponse(int status, String error, String message, String path) {
         this.timestamp = LocalDateTime.now();
