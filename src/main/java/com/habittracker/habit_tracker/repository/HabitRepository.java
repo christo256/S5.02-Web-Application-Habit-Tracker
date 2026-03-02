@@ -11,4 +11,6 @@ public interface HabitRepository extends JpaRepository<Habit, Long> {
 
     // Buscar todos los hábitos de un usuario
     List<Habit> findByUserId(Long userId);
+
+    List<Habit> findByUserUsername(String username);
 }
