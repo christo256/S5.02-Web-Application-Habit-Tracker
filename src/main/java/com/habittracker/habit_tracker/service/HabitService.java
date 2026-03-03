@@ -1,5 +1,8 @@
 package com.habittracker.habit_tracker.service;
 
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
 import com.habittracker.habit_tracker.dto.mapper.HabitMapper;
 import com.habittracker.habit_tracker.dto.request.HabitRequest;
 import com.habittracker.habit_tracker.dto.response.HabitResponse;
@@ -35,8 +38,10 @@ public class HabitService {
     private final UserRepository userRepository;
     private final HabitMapper habitMapper;
 
+    @Cacheable(value = "userHabits", key = "#username")
     @Transactional(readOnly = true)
     public List<HabitResponse> getAllUserHabits(String username) {
+        log.debug("Cache MISS - Fetching habits from DB for user: {}", username);
         User user = findUserByUsername(username);
 
         return habitRepository.findByUserId(user.getId())
@@ -53,10 +58,10 @@ public class HabitService {
         return habitMapper.toResponse(habit);
     }
 
-
+    @CacheEvict(value = "userHabits", key = "#username")
     @Transactional
     public HabitResponse createHabit(HabitRequest request, String username) {
-        log.info("Creating habit '{}' for user '{}'", request.getName(), username);
+        log.info("Creating habit '{}' for user '{}' - Evicting cache", request.getName(), username);
         User user = findUserByUsername(username);
 
         Habit habit = habitMapper.toEntity(request, user);
@@ -78,48 +83,65 @@ public class HabitService {
         return habitMapper.toResponse(updatedHabit);
     }
 
-
+    @CacheEvict(value = "userHabits", key = "#username")
     @Transactional
     public void deleteHabit(Long habitId, String username) {
+        log.info("Deleting habit {} for user {}", habitId, username);  // ← NUEVO
+
         Habit habit = findHabitById(habitId);
         validateOwnership(habit, username);
 
         habitRepository.delete(habit);
+
+        log.info("Habit {} deleted successfully", habitId);  // ← NUEVO
     }
 
-
+    @CacheEvict(value = "userHabits", key = "#username")
     @Transactional
     public HabitResponse completeHabit(Long habitId, String username) {
-        Habit habit = findHabitById(habitId);
-        validateOwnership(habit, username);
+        log.info("Attempting to complete habit {} for user {}", habitId, username);  // ← NUEVO
 
-        LocalDate today = LocalDate.now();
-        LocalDate lastCompleted = habit.getLastCompleted();
+        try {
+            Habit habit = findHabitById(habitId);
+            validateOwnership(habit, username);
 
-        // Validar que no se haya completado hoy
-        if (today.equals(lastCompleted)) {
-            throw new BadRequestException("Habit already completed today");
+            LocalDate today = LocalDate.now();
+            LocalDate lastCompleted = habit.getLastCompleted();
+
+            // Validar que no se haya completado hoy
+            if (today.equals(lastCompleted)) {
+                log.warn("Habit {} already completed today by user {}", habitId, username);  // ← NUEVO
+                throw new BadRequestException("Habit already completed today");
+            }
+
+            // Actualizar según frecuencia
+            switch (habit.getFrequency()) {
+                case DAILY:
+                    updateDailyStreak(habit, today, lastCompleted);
+                    break;
+                case WEEKLY:
+                    updateWeeklyStreak(habit, today, lastCompleted);
+                    break;
+                case MONTHLY:
+                    updateMonthlyStreak(habit, today, lastCompleted);
+                    break;
+            }
+
+            habit.setLastCompleted(today);
+            Habit updatedHabit = habitRepository.save(habit);
+
+            log.info("Habit {} completed successfully. New streak: {}, Longest: {}",
+                    habitId, updatedHabit.getCurrentStreak(), updatedHabit.getLongestStreak());  // ← NUEVO
+
+            return habitMapper.toResponse(updatedHabit);
+
+        } catch (BadRequestException e) {
+            log.warn("Failed to complete habit {}: {}", habitId, e.getMessage());  // ← NUEVO
+            throw e;
+        } catch (Exception e) {
+            log.error("Unexpected error completing habit {} for user {}: {}", habitId, username, e.getMessage(), e);  // ← NUEVO
+            throw e;
         }
-
-        // Actualizar según frecuencia
-        switch (habit.getFrequency()) {
-            case DAILY:
-                updateDailyStreak(habit, today, lastCompleted);
-                break;
-
-            case WEEKLY:
-                updateWeeklyStreak(habit, today, lastCompleted);
-                break;
-
-            case MONTHLY:
-                updateMonthlyStreak(habit, today, lastCompleted);
-                break;
-        }
-
-        habit.setLastCompleted(today);
-        Habit updatedHabit = habitRepository.save(habit);
-
-        return habitMapper.toResponse(updatedHabit);
     }
 
     // Lógica DAILY
@@ -221,6 +243,7 @@ public class HabitService {
 
     @Transactional(readOnly = true)
     public HabitStatsResponse getUserStats(String username) {
+        log.debug("Calculating stats for user: {}", username);
 
         List<Habit> habits = habitRepository.findByUserUsername(username);
 
