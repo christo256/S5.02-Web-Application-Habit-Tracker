@@ -29,6 +29,9 @@ public class Habit {
     @Column(nullable = false)
     private Frequency frequency;
 
+    @Column(name = "target_count", nullable = false)
+    private Integer targetCount = 1;
+
     @Column(nullable = false)
     @Builder.Default
     private int currentStreak = 0;
