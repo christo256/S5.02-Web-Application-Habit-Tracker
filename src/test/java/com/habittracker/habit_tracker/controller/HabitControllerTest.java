@@ -39,8 +39,31 @@ class HabitControllerTest {
     @Test
     @WithMockUser(username = "testuser", roles = "USER")
     void testGetAllHabits_Success() throws Exception {
-        HabitResponse habit1 = new HabitResponse(1L, "Read", "Read 30 min", Frequency.DAILY, 0, 0, null, 1L);
-        HabitResponse habit2 = new HabitResponse(2L, "Exercise", "Gym", Frequency.WEEKLY, 0, 0, null, 1L);
+
+        HabitResponse habit1 = new HabitResponse(
+                1L,
+                "Read",
+                "Read 30 min",
+                Frequency.DAILY,
+                1,
+                0,
+                0,
+                null,
+                1L
+        );
+
+        HabitResponse habit2 = new HabitResponse(
+                2L,
+                "Exercise",
+                "Gym",
+                Frequency.WEEKLY,
+                1,
+                0,
+                0,
+                null,
+                1L
+        );
+
         List<HabitResponse> habits = Arrays.asList(habit1, habit2);
 
         when(habitService.getAllUserHabits(anyString())).thenReturn(habits);
@@ -54,10 +77,28 @@ class HabitControllerTest {
     @Test
     @WithMockUser(username = "testuser", roles = "USER")
     void testCreateHabit_Success() throws Exception {
-        HabitRequest request = new HabitRequest("Meditate", "10 minutes daily", Frequency.DAILY);
-        HabitResponse response = new HabitResponse(1L, "Meditate", "10 minutes daily", Frequency.DAILY, 0, 0, null, 1L);
 
-        when(habitService.createHabit(any(HabitRequest.class), anyString())).thenReturn(response);
+        HabitRequest request = new HabitRequest(
+                "Meditate",
+                "10 minutes daily",
+                Frequency.DAILY,
+                1
+        );
+
+        HabitResponse response = new HabitResponse(
+                1L,
+                "Meditate",
+                "10 minutes daily",
+                Frequency.DAILY,
+                1,
+                0,
+                0,
+                null,
+                1L
+        );
+
+        when(habitService.createHabit(any(HabitRequest.class), anyString()))
+                .thenReturn(response);
 
         mockMvc.perform(post("/api/habits")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -70,12 +111,21 @@ class HabitControllerTest {
     @Test
     @WithMockUser(username = "testuser", roles = "USER")
     void testCompleteHabit_Success() throws Exception {
+
         HabitResponse response = new HabitResponse(
-                1L, "Read", "Read 30 min", Frequency.DAILY,
-                1, 1, LocalDate.now(), 1L
+                1L,
+                "Read",
+                "Read 30 min",
+                Frequency.DAILY,
+                1,
+                1,
+                1,
+                LocalDate.now(),
+                1L
         );
 
-        when(habitService.completeHabit(anyLong(), anyString())).thenReturn(response);
+        when(habitService.completeHabit(anyLong(), anyString()))
+                .thenReturn(response);
 
         mockMvc.perform(post("/api/habits/1/complete"))
                 .andExpect(status().isOk())
@@ -86,6 +136,7 @@ class HabitControllerTest {
     @Test
     @WithMockUser(username = "testuser", roles = "USER")
     void testDeleteHabit_Success() throws Exception {
+
         mockMvc.perform(delete("/api/habits/1"))
                 .andExpect(status().isNoContent());
     }

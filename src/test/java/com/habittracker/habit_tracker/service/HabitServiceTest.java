@@ -33,6 +33,7 @@ class HabitServiceTest {
 
     @Test
     void testCreateHabit_Success() {
+
         User user = User.builder()
                 .id(1L)
                 .username("testuser")
@@ -45,17 +46,30 @@ class HabitServiceTest {
                 .name("Read")
                 .description("Read 30 min")
                 .frequency(Frequency.DAILY)
+                .targetCount(1)
+                .currentStreak(0)
+                .longestStreak(0)
                 .user(user)
                 .build();
 
-        when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(user));
-        when(habitRepository.save(any(Habit.class))).thenReturn(habit);
+        when(userRepository.findByUsername("testuser"))
+                .thenReturn(Optional.of(user));
 
-        HabitRequest request = new HabitRequest("Read", "Read 30 min", Frequency.DAILY);
+        when(habitRepository.save(any(Habit.class)))
+                .thenReturn(habit);
+
+        HabitRequest request = new HabitRequest(
+                "Read",
+                "Read 30 min",
+                Frequency.DAILY,
+                1
+        );
+
         HabitResponse response = habitService.createHabit(request, "testuser");
 
         assertNotNull(response);
         assertEquals("Read", response.getName());
         assertEquals(Frequency.DAILY, response.getFrequency());
+        assertEquals(1, response.getTargetCount());
     }
 }
