@@ -18,6 +18,7 @@ public class HabitResponse {
     private String name;
     private String description;
     private Frequency frequency;
+    private Integer targetCount;
     private Integer currentStreak;
     private Integer longestStreak;
     private LocalDate lastCompleted;

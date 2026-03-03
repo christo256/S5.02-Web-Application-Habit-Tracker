@@ -1,9 +1,7 @@
 package com.habittracker.habit_tracker.dto.request;
 
 import com.habittracker.habit_tracker.model.enums.Frequency;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -21,4 +19,9 @@ public class HabitRequest {
 
     @NotNull(message = "Frequency is required")
     private Frequency frequency;
+
+    @NotNull(message = "Target count is required")
+    @Min(value = 1, message = "Target count must be at least 1")
+    @Max(value = 31, message = "Target count cannot exceed 31")
+    private Integer targetCount;
 }
