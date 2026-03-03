@@ -4,6 +4,8 @@ import com.habittracker.habit_tracker.dto.request.HabitRequest;
 import com.habittracker.habit_tracker.dto.response.ErrorResponse;
 import com.habittracker.habit_tracker.dto.response.HabitResponse;
 import com.habittracker.habit_tracker.dto.response.HabitStatsResponse;
+import com.habittracker.habit_tracker.dto.response.RankingEntry;
+import com.habittracker.habit_tracker.model.enums.Frequency;
 import com.habittracker.habit_tracker.service.HabitService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -165,4 +167,29 @@ public class HabitController {
                 habitService.getUserStats(authentication.getName())
         );
     }
+
+    @Operation(
+            summary = "Get rankings by frequency",
+            description = "Retrieve top 10 habits ranked by longest streak for a specific frequency"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Rankings retrieved successfully",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = RankingEntry.class)
+                    )
+            )
+    })
+    @GetMapping("/rankings/{frequency}")
+    @PreAuthorize("hasAnyAuthority('ROLE_USER', 'ROLE_ADMIN')")
+    @SecurityRequirement(name = "Bearer Authentication")
+    public ResponseEntity<List<RankingEntry>> getRankingsByFrequency(
+            @PathVariable Frequency frequency) {
+        List<RankingEntry> rankings = habitService.getRankingsByFrequency(frequency);
+        return ResponseEntity.ok(rankings);
+    }
+
+
 }
