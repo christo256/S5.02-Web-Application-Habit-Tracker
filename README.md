@@ -1,4 +1,4 @@
-markdown# Habit Tracker API 🎯
+# Habit Tracker API 🎯
 
 A RESTful API for managing daily, weekly, and monthly habits with JWT authentication and role-based access control.
 
