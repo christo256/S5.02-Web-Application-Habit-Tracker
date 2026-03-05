@@ -2,6 +2,8 @@
 
 A modern full-stack web application for tracking daily, weekly, and monthly habits with automatic streak calculation, JWT authentication, role-based access control, and a beautiful React interface.
 
+**🎨 Frontend Repository:** [React Application →](https://github.com/christo256/S5.02-Web-Application-Habit-Tracker-Frontend)
+
 ---
 
 ## 📊 Project Presentation
