@@ -1,6 +1,19 @@
 # Habit Tracker API 🎯
 
-A RESTful API for managing daily, weekly, and monthly habits with JWT authentication and role-based access control.
+A modern full-stack web application for tracking daily, weekly, and monthly habits with automatic streak calculation, JWT authentication, role-based access control, and a beautiful React interface.
+
+---
+
+## 📊 Project Presentation
+
+**[🎯 View Interactive Presentation](https://gamma.app/docs/Habit-Tracker-4k7d2w9muhf6bqg)** *(Gamma.app)*
+
+Complete academic presentation of the project explaining full-stack development 
+with Spring Boot and React, using Claude (Anthropic) as a learning tool. Includes 
+technology stack, architecture, challenges overcome, and reflections on learning 
+with AI.
+
+**📅 Date:** March 2026
 
 ---
 
